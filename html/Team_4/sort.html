@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorting Form - Younger Lab Database</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+
+    .dropdown-menu a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown-menu a:hover {
+      background-color: #f1f1f1;
+    }
+
+    .nav-menu li:hover .dropdown-menu {
+      display: block;
+    }
+
+    .form-field {
+      margin-bottom: 10px;  
+    }
+
+    #notes {
+      width: 20%;         
+      padding: 10px;        
+    }
+    .main-content {
+      padding-left: 100px;
+    }
+
+    /* Popup styles */
+    .popup {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px solid #ccc;
+      background-color: white;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .collapsible {
+      margin-bottom: 20px;
+    }
+
+    #notes-margin {
+      margin-bottom: 10px; 
+    }
+  </style>
+  <script>
+$(document).ready(function() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('sort-date').value = today;
+
+  function populate_list(dropdown, json, label) {
+    $(dropdown).empty();
+    // Append "Select" option with the specified label
+    $(dropdown).append('<option value="">' + label + '</option>');
+    json.forEach(function(item) {
+      let option = `<option value=${item[0]}>${item[1]}</option>`;
+      $(dropdown).append(option);
+    });
+  }
+
+  ['m_id_dropdown', 'l_id_dropdown'].forEach(selector => {
+    $.ajax({
+      url: 'https://bioed.bu.edu/cgi-bin/students_24/Team_4/dropdowns.py',
+      method: 'GET',
+      dataType: 'json',
+      data: { 'selector': selector },
+      success: function(data) {
+        // Determine label based on selector
+        let label = (selector === 'm_id_dropdown') ? 'Select Name' : 'Select Line';
+        populate_list(`#${selector === 'm_id_dropdown' ? 'name' : 'l_id'}`, data, label);
+      },
+      error: function(xhr, status, error) {
+        console.error(`Error fetching data for ${selector}:`, error);
+      }
+    });
+  });
+
+
+      $("#l_id").change(function() {
+        $.ajax({
+          url: 'https://bioed.bu.edu/cgi-bin/students_24/Team_4/dropdowns.py',
+          method: 'GET',
+          dataType: 'json',
+          data: { 'selector': 'hatch_date', 'l_id': this.value },
+          success: function(data) {
+            $("#hatch_date").val(data.default_date);
+          },
+          error: function(xhr, status, error) {
+            console.error('Error fetching hatch date:', error);
+          }
+        });
+      });
+
+      $('#sortingForm').submit(function(event) {
+    event.preventDefault();
+    var formData = $(this).serializeArray();
+    var popupContent = '<h2>Preview Data</h2><ul>';
+    formData.forEach(function(field) {
+        popupContent += `<li><strong>${field.name}:</strong> ${field.value}</li>`;
+    });
+    popupContent += '</ul><button id="confirmButton">Confirm</button><button id="goBackButton">Go Back</button>';
+    $('#popupContent').html(popupContent);
+    $('.popup').show();
+    
+    // Now submit the form data to the server
+    $.ajax({
+        url: $(this).attr('action'), // Get the form action URL
+        method: 'POST', // Use POST method
+        data: formData, // Send form data
+        success: function(response) {
+            console.log('Form data submitted successfully:', response);
+            // Optionally, you can hide the popup or show a success message here
+        },
+        error: function(xhr, status, error) {
+            console.error('Error submitting form data:', error);
+            // Optionally, you can show an error message here
+        }
+    });
+});
+
+
+      $(document).on('click', '#confirmButton, #goBackButton', function() {
+        $('.popup').hide();
+      });
+
+      // Handle showing/hiding of fluorescent details
+      $('select[name="fluorescent"]').change(function() {
+        if ($(this).val() === 'yes') {
+          $('#fluorescentDetails').slideDown();
+        } else {
+          $('#fluorescentDetails').slideUp();
+        }
+      });
+
+      function handleOtherOption(selectId, inputId) {
+        var select = document.getElementById(selectId);
+        var input = document.getElementById(inputId);
+        if (select.value === 'other') {
+          input.style.display = 'block';
+        } else {
+          input.style.display = 'none';
+        }
+      }
+
+      function updateFluorescenceValue() {
+        var slider = document.getElementById('fluorescencePercentage');
+        var output = document.getElementById('fluorescenceValue');
+        output.textContent = slider.value;
+      }
+
+      window.handleOtherOption = handleOtherOption;
+      window.updateFluorescenceValue = updateFluorescenceValue;
+    });
+  </script>
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  <div class="main-content">
+    <main>
+      <div class="container">
+        <h2>Sorting Form</h2>
+        <br>
+        <form id="sortingForm" action="https://bioed.bu.edu/cgi-bin/students_24/Team_4/sort_insert.py" method="post">
+          <div class="form-field">
+            <label for="name">Name:</label>
+            <select id="name" name="m_id" required></select><br><br>
+            <label for="genotype">Genotype:</label>
+            <select id="l_id" name="l_id" required></select><br><br>
+            <label for="hatch_date">Hatch Date:</label>
+            <input type="date" id="hatch_date" name="hatch_date"><br><br>
+            <label for="sort-date">Sort Date:</label>
+            <input type="date" id="sort-date" name="sort_date" required>
+          </div>
+
+              <div class="form-field">
+                <label>Color: <span class="required">*</span></label>
+                <select id="colorSelect" name="marker_color" onchange="handleOtherOption('colorSelect', 'otherColorInput')">
+                  <option value="">Please select</option>
+                  <option value="Blue">Blue</option>
+                  <option value="Red">Red</option>
+                  <option value="Yellow">Yellow</option>
+                  <option value="other">Other</option>
+                </select>
+                <input type="text" id="otherColorInput" name="otherColor" style="display:none;" placeholder="Enter color"/>
+              </div>
+
+              <!-- Marker Location Field -->
+              <div class="form-field">
+                <label>Marker location: <span class="required">*</span></label>
+                <select id="locationSelect" name="marker_location" onchange="handleOtherOption('locationSelect', 'otherLocationInput')">
+                  <option value="">Please select</option>
+                  <option value="Eye">Eye</option>
+                  <option value="Tail">Tail</option>
+                  <option value="Broad">Broad</option>
+                  <option value="other">Other</option>
+                </select>
+                <input type="text" id="otherLocationInput" name="otherLocation" style="display:none;" placeholder="Enter location"/>
+              </div>
+
+              <!-- Updated Fluorescence Percentage Slider -->
+              <div class="form-field">
+                <label>% Fluorescence: <span class="required">*</span></label>
+                <input type="range" id="fluorescencePercentage" name="fluorescencePercentage" min="0" max="1" step="0.1" value="0.5" oninput="updateFluorescenceValue()">
+                <span id="fluorescenceValue">0.5</span>
+              </div>
+
+              <!-- Total Fluorescent Field -->
+              <div class="form-field">
+                <label>Total Fluorescent: <span class="required">*</span></label>
+                <input type="number" name="totalFluorescent" required pattern="\d*" title="Only whole numbers are allowed." min="0">
+              </div>
+
+              <!-- Notes Field -->
+              <div class="form-field">
+                <label for="notes">Notes:</label>
+                <textarea id="notes" name="notes" placeholder="Enter any additional notes here"></textarea>
+              </div>
+              
+              <button type="submit" name="form_submit">Submit</button>
+              <br><br> <!-- Added space -->
+            </div>
+          </div>
+
+
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- Popup -->
+  <div class="popup">
+    <div id="popupContent"></div>
+  </div>
+
+  <script>
+    fetch('header.html')
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById('header-placeholder').innerHTML = html;
+    })
+    .catch(error => {
+      console.error('Error fetching header:', error);
+    });
+    
+    function toggleFluorescentFields(value) {
+      if (value === 'yes') {
+        document.getElementById('fluorescentDetails').style.display = 'block';
+      } else {
+        document.getElementById('fluorescentDetails').style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>
+

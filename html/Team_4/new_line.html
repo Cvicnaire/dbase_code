@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add New Genotype</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div id = 'header-placeholder'></div>
+  <div class="container">
+    <h1>Add New Strain</h1>
+    <form id="genotypeForm">
+      <!-- YLID -->
+      <div class="form-field">
+        <label>Younger Lab ID: <span class="required">*</span></label>
+        <input type="text" id="yl_id" name="yl_id" required readonly/>
+      </div>
+
+      <!-- Short Hand -->
+      <div class="form-field">
+        <label>Short hand: <span class="required">*</span></label>
+        <input type="text" id="otherShortHandInput" name="shortHand" required placeholder="Enter short hand"/>
+      </div>
+
+      <!-- Full Genotype -->
+      <div class="form-field">
+        <label>Full genotype: <span class="required">*</span></label>
+        <input type="text" id="otherFullGenotypeInput" name="otherFullGenotype" required placeholder="Enter full genotype"/>
+      </div>
+
+      <!-- Background Strain -->
+      <div class="form-field">
+        <label>Background strain: <span class="required">*</span></label>
+        <select id="backgroundStrainSelect" name="backgroundStrain" required onchange="handleOtherOption('backgroundStrainSelect', 'otherBackgroundStrainInput')">
+          <option value="">Please select</option>
+          <option value="Strain1">LVP</option>
+          <option value="Strain2">ORL</option>
+          <option value="other">Other</option>
+        </select>
+        <input type="text" id="otherBackgroundStrainInput" name="otherBackgroundStrain" style="display:none;" placeholder="Enter background strain"/>
+      </div>
+
+      <!-- Published ID -->
+      <div class="form-field">
+        <fieldset>
+          <legend>Publication information:</legend>
+          <input type="radio" id="published" name="publishedID" value="published" onchange="togglePublished(true)">
+          <label for="published">Yes:</label>
+          <input type="text" id="pubIDInput" name="publicationID" disabled placeholder="Enter PubID" />
+          <input type="text" id="authorInput" name="author" disabled placeholder="Enter author names" /><br>
+          <input type="radio" id="unpublished" name="publishedID" value="unpublished" onchange="togglePublished(false)">
+          <label for="unpublished">No</label>
+        </fieldset>
+      </div>
+
+      <!-- Line Creator -->
+      <div class="form-field">
+        <label>Line creator:</label>
+        <input type="text" id="creators" name="creators" placeholder="Ex. Meg Younger, Ben Matthews, Zachary Gilbert"/>
+      </div>
+
+      <!-- Phenotype: Fluorescent -->
+      <div class="form-field collapsible">
+        <label>Phenotype: Fluorescent <span class="required">*</span></label>
+        <select name="fluorescent" onchange="toggleFluorescent(this.value)">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+        <div id="fluorescentDetails" style="display:none;">
+          <input type="text" id="phenotype" name="phenotype" placeholder="Ex. red eyes; bright blue eyes and tail"/>
+        </div>
+      </div>
+
+      <!-- DNA Available -->
+      <div class="form-field">
+        <label>DNA available: <span class="required">*</span></label>
+        <select name="dnaAvailable" required>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+
+      <!-- Phenotype Notes -->
+      <div class="form-field">
+        <label>Phenotype notes:</label>
+        <textarea name="phenotypeNotes"></textarea>
+      </div>
+
+      <!-- Genotyping Notes -->
+      <div class="form-field">
+        <label>Genotyping notes:</label>
+        <textarea name="genotypingNotes"></textarea>
+      </div>
+
+      <!-- Other Notes -->
+      <div class="form-field">
+        <label>Other notes:</label>
+        <textarea name="otherNotes"></textarea>
+      </div>
+
+      <!-- Actively Maintained -->
+      <div class="form-field">
+        <label>Actively maintained: <span class="required">*</span></label>
+        <select name="activelyMaintained" required>
+          <option value="Active">Yes</option>
+          <option value="Retired">No</option>
+        </select>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <script>
+    function handleOtherOption(selectId, inputId) {
+      var select = document.getElementById(selectId);
+      var input = document.getElementById(inputId);
+      if (select.value === 'other') {
+        input.style.display = 'block';
+      } else {
+        input.style.display = 'none';
+      }
+    }
+
+    function togglePublished(isPublished) {
+      document.getElementById('pubIDInput').disabled = !isPublished;
+      document.getElementById('authorInput').disabled = !isPublished;
+    }
+
+    function toggleFluorescent(value) {
+      var details = document.getElementById('fluorescentDetails');
+      details.style.display = (value === 'yes' ? 'block' : 'none');
+    }
+
+    function addMarker() {
+      var container = $('.marker-details');
+      var markerCount = container.data('marker-count') + 1;
+      container.data('marker-count', markerCount);
+      var html = `
+        <div class="marker-section" id="marker${markerCount}">
+          <h3>Marker ${markerCount}</h3>
+          <label>Marker color: <span class="required">*</span></label>
+          <select onchange="toggleOtherInput(this, 'otherColor${markerCount}')">
+            <option value="">Please select</option>
+            <option value="Blue">Blue</option>
+            <option value="Red">Red</option>
+            <option value="Yellow">Yellow</option>
+            <option value="other">Other</option>
+          </select>
+          <input type="text" id="otherColor${markerCount}" style="display:none;" placeholder="Enter color"/>
+
+          <label>Marker location: <span class="required">*</span></label>
+          <select onchange="toggleOtherInput(this, 'otherLocation${markerCount}')">
+            <option value="">Please select</option>
+            <option value="Eye">Eye</option>
+            <option value="Tail">Tail</option>
+            <option value="Broad">Broad</option>
+            <option value="other">Other</option>
+          </select>
+          <input type="text" id="otherLocation${markerCount}" style="display:none;" placeholder="Enter location"/>
+
+          <fieldset>
+            <legend>Marker Brightness: <span class="required">*</span></legend>
+            <label><input type="radio" name="brightness${markerCount}" value="Bright"> Bright</label>
+            <label><input type="radio" name="brightness${markerCount}" value="Dim"> Dim</label>
+            <label><input type="radio" name="brightness${markerCount}" value="N/A"> N/A</label>
+          </fieldset>
+        </div>
+      `;
+      container.append(html);
+    }
+
+    document.getElementById('genotypeForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      alert('Form submitted successfully!');
+      this.reset();
+    });
+    fetch('header.html')
+.then(response => response.text())
+.then(html => {
+    document.getElementById('header-placeholder').innerHTML = html;
+})
+.catch(error => {
+    console.error('Error fetching header:', error);
+});
+  </script>
+</body>
+</html>

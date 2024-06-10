@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="https://www.gstatic.com/charts/51/loader.js"></script>
+<link id="load-css-0" rel="stylesheet" type="text/css" href="https://www.gstatic.com/charts/51/css/core/tooltip.css">
+<link id="load-css-1" rel="stylesheet" type="text/css" href="https://www.gstatic.com/charts/51/css/util/util.css">
+<script type="text/javascript" charset="UTF-8" src="https://www.gstatic.com/charts/51/js/jsapi_compiled_default_module.js"></script>
+<script type="text/javascript" charset="UTF-8" src="https://www.gstatic.com/charts/51/js/jsapi_compiled_graphics_module.js"></script>
+<script type="text/javascript" charset="UTF-8" src="https://www.gstatic.com/charts/51/js/jsapi_compiled_ui_module.js"></script>
+<script type="text/javascript" charset="UTF-8" src="https://www.gstatic.com/charts/51/js/jsapi_compiled_corechart_module.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="script.js"></script>
+
+  <style>
+  /* Additional CSS for hiding/showing sections */
+.hidden {
+  display: none;
+}
+
+/* Define the style for the table */
+#main .custom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#main .custom-table th,
+#main .custom-table td {
+  border: 1px solid #dddddd;
+  padding: 8px;
+  text-align: left;
+}
+
+#main .custom-table th {
+  background-color: gray; /* Set background color to white */
+  border: 1px solid #dddddd;
+  padding: 8px;
+  text-align: left;
+}
+
+#main .passage-date,
+#main .hatch-date,
+#main .sort-date {
+  text-align: center;
+}
+
+/* Dropdown menu styles */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+/* Style the links inside the dropdown menu */
+.dropdown-menu a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-menu a:hover {
+  background-color: #f1f1f1;
+}
+
+/* Show the dropdown menu when hovering over its parent */
+.nav-menu li:hover .dropdown-menu {
+  display: block;
+}
+
+.container {
+  margin: 0 auto; /* Center the container horizontally */
+  width: 80%; /* Limit the width of the container */
+ 
+   /* Add right padding */
+}
+
+.collapsible {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 12px; /* Reduce padding */
+  width: 100%; /* Reduce width */
+  border: 1px solid #ddd; /* Add border */
+  border-radius: 5px; /* Add rounded corners */
+  text-align: left;
+  outline: none;
+  font-size: 18px;
+  transition: background-color 0.4s ease;
+}
+
+.active,
+.collapsible:hover {
+  background-color: #ccc;
+}
+
+.content {
+  padding: 0 12px; /* Reduce padding */
+  display: none;
+  overflow: hidden;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd; /* Add border */
+  border-top: none; /* Remove top border */
+  border-radius: 0 0 5px 5px; /* Add rounded corners only at the bottom */
+  transition: max-height 0.2s ease-out;
+  
+}
+
+/* Add more button styles as needed */
+
+   </style>
+
+</head>
+<body>
+  <div id="header-placeholder"></div>
+
+  <div id = "help-content">
+    <main id="help">
+        <div class="container">
+          <h2>Help Guide</h2>
+
+          <button class="collapsible">Lines</button>
+          <div class="content">
+            <h2>Active Lines</h2>
+            <p>The active Lines table provides a comprehensive overview of all active mosquito lines in the database. 
+            </p>
+            <h2>Retired</h2>
+            <p>The Retired Lines table provides an overview of all of the retired mosquito lines in the database.</p>
+            <h2>All Lines</h2>
+            <p> The All lines tables an overview of all of the mosquito lines in the database</p>
+          </div>
+          <button class="collapsible">Breeding</button>
+          <div class="content">
+            <h2>Sorting</h2>
+            <p> This tab provides a table of all the sorting records entered into the forms.
+            </p>
+            <h2>Passage </h2>
+            <p>This tab provides a table of all the passage records entered into the forms.</p>
+            <h2>Clutch</h2>
+            <p>This Tab provides a table of all the clutch records entered into the forms. </p>
+            <h2> Combined</h2>
+            <p> This tab provides a
+          </div>
+    
+          <button class="collapsible">Forms</button>
+          <div class="content">
+            <h2>Passage Form</h2>
+            <p>For each field in the form:
+                <b>Name:</b> input the name of the person filling the form.
+                <b>Genoype:</b> select genotype of line passaged.
+                <b>BC/IB Number:</b> input current inbreed or backcross number of the generation, adding +1 for the latest cross.
+                <b>Hatch Date:</b> hatch date of the line passaged.
+                <b>Passage Date:</b> input today's date.
+                <b>Mating Line:</b> the the passage is crossing with.
+            </p>
+            <h2>Sorting Form</h2>
+            <p>For each field in the form:
+              <b>Name:</b> input the name of the person filling the form.
+              <b>Date Sorting:</b> input today's date.
+              <b>Marker Location:</b> input location of fluorescent marker.
+              <b>Ratio of fluorescent to non-fluorescent larvae:</b> approximate ratio using slider, with color representing fluorescent mosquitos.
+              <b>Number of fluorescent animals sorted:</b> input total number of animals which were fluorescent.
+              <b>Additional Notes:</b> open field for any relevant notes, such as male to female ratios. 
+            </p>
+            <h2>Clutch Form</h2>
+            <p>For each field in the form:
+              <b>Name:</b> input the name of the person filling the form.
+              <b>Genoype:</b> select genotype of line passaged.
+              <b>Hatch Date:</b> input hatch date of the clutch.
+              <b>Collection Date:</b> input date the eggs are collected.
+              <b>Clutch number:</b> is it the first, second, or third time collecting eggs from this cage since last passage?
+              <b>Egg Papers:</b> input density of the eggs on the egg paper. See images below for reference.
+              <img src="https://bioed.bu.edu/images/students_24/Team_4/eggs.png" width="1000px">
+            </p>
+            <h2> New Line form </h2>
+            <p> This form allows the user to add a new line into the databsase. </p>
+          </div>
+    
+          <button class = "collapsible">Lab Users</button>
+          <div class = "content" >
+          <p>This provides as a supplementary page that with a table of all of the lab users registered into the website operations. The add new user button will allow the user to submite a new lab member into the database.</p>
+          </div>
+          <button class="collapsible">Modify Tables</button>
+          <div class="content">
+            <p>After entering the administrator password, select the table to edit from the dropdown menu. Enter the sort, passage, or clutch ID of the row you want to edit in the first field, and allow the form to autopopulate with the current values in the table. The form allows users to freeform edit any field in the row. After editing the desired values, click submit. A confirmation message will appear on screen if changes were successful.</p>
+          </div>
+    
+          <button class="collapsible">Diagnostics</button>
+          <div class="content">
+            <h2>Clutch Wellness</h2>
+            <p>The clutch wellness functionality allows users to perform clutch wellness checks. Select the Line in question from the genotype dropdown menu. The graph will display the egg density of the line over time as pulled from record submitted through the clutch form. Each individual line is correlated with whether the clutch was the first, second, or third of its parent line.</p>
+          </div>
+          
+        </div>
+      </div> 
+      </main>
+      <br>
+      <div id="footer"></div>
+      <script>
+         fetch('header.html')
+.then(response => response.text())
+.then(html => {
+    document.getElementById('header-placeholder').innerHTML = html;
+})
+.catch(error => {
+    console.error('Error fetching header:', error);
+});
+
+fetch('footer.html')
+.then(response => response.text())
+.then(html => {
+    document.getElementById('footer').innerHTML = html;
+})
+.catch(error => {
+    console.error('Error fetching footer:', error);
+});
+
+</script>
+  </body>
