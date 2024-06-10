@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passage Form - Younger Lab Database</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+
+    .dropdown-menu a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown-menu a:hover {
+      background-color: #f1f1f1;
+    }
+
+    .nav-menu li:hover .dropdown-menu {
+      display: block;
+    }
+
+    .form-field {
+      margin-bottom: 10px;  
+    }
+
+    #notes {
+      width: 20%;         
+      padding: 10px;        
+    }
+    .main-content {
+      padding-left: 100px;
+    }
+
+    /* Popup styles */
+    .popup {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px solid #ccc;
+      background-color: white;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .collapsible {
+      margin-bottom: 20px;
+    }
+
+    #notes-margin {
+      margin-bottom: 10px; 
+    }
+  </style>
+  <script>
+  $(document).ready(function() {
+    const today = new Date().toISOString().split('T')[0];
+  document.getElementById('collection-date').value = today;
+
+  const future = new Date(today);
+  future.setMonth(future.getMonth() + 2);
+  future.setDate(future.getDate() + 14);
+
+  // Set the input field value of next-passage to the combined date
+  $('#next-passage').val(future.toISOString().split('T')[0]);
+
+  function populate_list(dropdown, json, label) {
+    $(dropdown).empty();
+    // Append "Select" option with the specified label
+    $(dropdown).append('<option value="">' + label + '</option>');
+    json.forEach(function(item) {
+      let option = `<option value=${item[0]}>${item[1]}</option>`;
+      $(dropdown).append(option);
+    });
+  }
+
+
+    // AJAX request to populate Name and Genotype dropdowns
+    ['m_id_dropdown', 'l_id_dropdown'].forEach(selector => {
+    $.ajax({
+      url: 'https://bioed.bu.edu/cgi-bin/students_24/Team_4/dropdowns.py',
+      method: 'GET',
+      dataType: 'json',
+      data: { 'selector': selector },
+      success: function(data) {
+        // Determine label based on selector
+        let label = (selector === 'm_id_dropdown') ? 'Select Name' : 'Select Line';
+        populate_list(`#${selector === 'm_id_dropdown' ? 'm_id' : 'l_id'}`, data, label);
+      },
+      error: function(xhr, status, error) {
+        console.error(`Error fetching data for ${selector}:`, error);
+      }
+    });
+  });
+
+  $("#l_id").change(function() {
+        $.ajax({
+          url: 'https://bioed.bu.edu/cgi-bin/students_24/Team_4/dropdowns.py',
+          method: 'GET',
+          dataType: 'json',
+          data: { 'selector': 'hatch_date', 'l_id': this.value },
+          success: function(data) {
+            $("#hatch_date").val(data.default_date);
+          },
+          error: function(xhr, status, error) {
+            console.error('Error fetching hatch date:', error);
+          }
+        });
+
+        $.ajax({
+      url: 'https://bioed.bu.edu/cgi-bin/students_24/Team_4/dropdowns.py',
+      method: 'GET',
+      dataType: 'json',
+      data: {'selector': 'bc_ib', 'l_id': this.value},
+      success: function(response) {
+                // Log the selector value to debug
+                console.log('Received response:', response);
+                // console.log(result)
+                // array = response[0]
+                if (response.length > 0) {
+                  array = response[0];
+                  $("#bc-number").val(array[0]);
+                  $("#ib-number").val(array[1]);
+                } else {$("#bc-number").val(0);
+                  $("#ib-number").val(0)};
+      },
+      error: function(xhr, status, error) {
+          console.error('Error fetching bc, ib:', error);
+      }
+    });
+
+      });
+
+  $("#collection-date").change(function() {
+        const today = $(this).val(); // Get the value of the changed collection-date field
+        const future = new Date(today);
+        future.setMonth(future.getMonth() + 2);
+        future.setDate(future.getDate() + 14);
+
+        // Set the input field value of next-passage to the combined date
+        $('#next-passage').val(future.toISOString().split('T')[0]);
+    });
+
+    // Form submission with AJAX for seamless user experience
+    $('#passageForm').submit(function(event) {
+      event.preventDefault();
+      var formData = $(this).serialize();
+      $.ajax({
+          url: $(this).attr('action'),
+          method: 'POST',
+          data: formData,
+          success: function(response) {
+              console.log('Form data submitted successfully:', response);
+              alert('Data submitted successfully.');
+          },
+          error: function(xhr, status, error) {
+              console.error('Error submitting form data:', error);
+              alert('Failed to submit data.');
+          }
+      });
+    });
+  });
+  </script>
+</head>
+<body>
+  <div id = 'header-placeholder'></div>
+  <div class="main-content">
+    <main>
+      <div class="container">
+        <h2>Passage Form</h2>
+        <form id="passageForm" action="/cgi-bin/students_24/Team_4/passage_insert.py" method="post">
+          <div class="form-field">
+            <label for="m_id">Name:</label>
+            <select id="m_id" name="m_id" required></select><br><br>
+            <label for="genotype">Genotype:</label>
+            <select id="l_id" name="l_id" required></select><br><br>
+            <label for="bc-number">BC Number:</label>
+            <input type="number" id="bc-number" name="bc-number" required pattern="\d*" min="0"><br><br>
+            <label for="ib-number">IB Number:</label>
+            <input type="number" id="ib-number" name="ib-number" required pattern="\d*" min="0"><br><br>
+            <label for="hatch_date">Hatch Date:</label>
+            <input type="date" id="hatch_date" name="hatch_date"><br><br>
+            <label for="collection-date">Passage Date:</label>
+            <input type="date" id="collection-date" name="collection-date" required><br><br>
+            <label for="next-passage">Next Passage:</label>
+            <input type="date" id="next-passage" name="next-passage"><br><br>
+            <label for="mating-line">Mating Line:</label>
+            <input type="text" id="mating-line" name="mating-line" required><br><br>
+          </div>
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script>
+    fetch('header.html')
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById('header-placeholder').innerHTML = html;
+    })
+    .catch(error => {
+      console.error('Error fetching header:', error);
+    });
+    
+    function toggleFluorescentFields(value) {
+      if (value === 'yes') {
+        document.getElementById('fluorescentDetails').style.display = 'block';
+      } else {
+        document.getElementById('fluorescentDetails').style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

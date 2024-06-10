@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clutch Form - Younger Lab Database</title>
+  <link rel="stylesheet" href="style.css"> <!-- Ensure the path to your CSS file is correct -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+
+    /* Style the links inside the dropdown menu */
+    .dropdown-menu a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    /* Change color of dropdown links on hover */
+    .dropdown-menu a:hover {
+      background-color: #f1f1f1;
+    }
+
+    /* Show the dropdown menu when hovering over its parent */
+    .nav-menu li:hover .dropdown-menu {
+      display: block;
+    }
+    #main-content {
+      padding-left: 100px;
+    }
+
+    /* Popup styles */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 1px solid #ccc;
+      background-color: white;
+      padding: 20px;
+      z-index: 1000;
+    }
+    
+  </style>
+  <script>
+$(document).ready(function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('collection-date').value = today;
+
+    $.ajax({
+        url: 'https://bioed.bu.edu/cgi-bin/students_24/Team_4/dropdowns.py',
+        method: 'GET',
+        dataType: 'json',
+        data: {'selector': 'm_id_dropdown'},
+        success: function(data) {
+            populate_list("#name", data);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching data:', error);
+        }
+    });
+
+    $.ajax({
+        url: 'https://bioed.bu.edu/cgi-bin/students_24/Team_4/dropdowns.py',
+        method: 'GET',
+        dataType: 'json',
+        data: {'selector': 'l_id_dropdown'},
+        success: function(data) {
+            populate_list("#l_id", data);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching data:', error);
+        }
+    });
+
+    $("#l_id").change(function() {
+        $("#hatch_date").empty();
+        let l_id = $("#l_id").val();
+
+        $.ajax({
+            url: 'https://bioed.bu.edu/cgi-bin/students_24/Team_4/dropdowns.py',
+            method: 'GET',
+            dataType: 'json',
+            data: {'selector': 'hatch_date', 'l_id': l_id},
+            success: function(data) {
+                $("#hatch_date").val(data.default_date);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching hatch date:', error);
+            }
+        });
+    });
+
+    function populate_list(dropdown, json){
+        $(dropdown).empty();
+        $(dropdown).append('<option value="">Select Name</option>'); // Add default option
+        for (let row= 0; row<json.length; row++) {
+            let value = json[row][0];
+            let name = json[row][1];
+            let drop_down_row = `<option value=${value}>${name}</option>`;
+            $(dropdown).append(drop_down_row);
+        }
+    };
+
+    // Form submission handling
+    $('#sorting_form').submit(function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        // Construct preview of form data
+        let formDataPreview = `
+            <p><strong>Name:</strong> ${$('#name option:selected').text()}</p>
+            <p><strong>Genotype:</strong> ${$('#l_id option:selected').text()}</p>
+            <p><strong>Hatch Date:</strong> ${$('#hatch_date').val()}</p>
+            <p><strong>Collection Date:</strong> ${$('#collection-date').val()}</p>
+            <p><strong>Clutch Number:</strong> ${$('#clutch-number').val()}</p>
+            <p><strong>Egg Papers:</strong> ${$('#egg-papers').val()}</p>
+            <button id="confirmButton">Confirm</button>
+            <button id="goBackButton">Go Back</button>
+        `;
+
+        // Set the preview content
+        $('.popup-content').html(formDataPreview);
+
+        // Show the popup window
+        $('.popup').show();
+    });
+
+    // Popup confirmation buttons handling
+    $(document).on('click', '#confirmButton, #goBackButton', function() {
+        $('.popup').hide();
+    });
+});
+
+  </script>
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  <div id = "main-content">
+  <main>
+    <div class="container">
+      <h2>Clutch Form</h2>
+      <br>
+      <form id="sorting_form" action="/cgi-bin/students_24/Team_4/clutch_insert.py" method="post">
+        <label for="name">Name:</label>
+        <select id="name" name="name" required></select><br><br>
+
+        <label for="genotype">Genotype:</label>
+        <select id="l_id" name="genotype"></select><br><br>
+
+        <label for="hatch_date">Hatch Date:</label>
+        <input type="date" id="hatch_date" name="hatch_date"><br><br>
+
+        <label for="collection-date">Collection Date:</label>
+        <input type="date" id="collection-date" name="collection-date"><br><br>
+
+        <label for="clutch-number">Clutch Number:</label>
+        <select id="clutch-number" name="clutch-number">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select><br><br>
+
+        <label for="egg-papers">Egg Papers:</label>
+        <select id="egg-papers" name="egg-papers">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select><br><br>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
+  </main>
+  <script>
+    fetch('header.html')
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('header-placeholder').innerHTML = html;
+    })
+    .catch(error => {
+        console.error('Error fetching header:', error);
+    });
+  </script>
+
+  <!-- Popup -->
+  <div class="popup" style="display: none;">
+    <div class="popup-content"></div>
+  </div>
+
+</body>
+</html>
